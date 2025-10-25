@@ -1,0 +1,5 @@
+{
+  "name": "ScrollyTell3",
+  "description": "A scroll-driven interactive explainer about sound waveforms.",
+  "requestFramePermissions": []
+}
