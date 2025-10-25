@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { AlgebraVisualState, AlgebraTerm, AlgebraSequenceFrame } from '../types';
+import { AlgebraVisualState, AlgebraTerm, AlgebraSequenceFrame, AlgebraInteraction } from '../types';
 
 interface Props {
   state: AlgebraVisualState;
@@ -11,7 +11,7 @@ const AlgebraVisual: React.FC<Props> = ({ state }) => {
       richEquations: initialRichEquations, 
       annotation: initialAnnotation, 
       sequence,
-      equations, highlightTerm, interaction 
+      equations, highlightTerm, interaction: initialInteraction 
   } = state;
 
   // -- Sequencing Logic --
@@ -47,33 +47,60 @@ const AlgebraVisual: React.FC<Props> = ({ state }) => {
 
 
   // -- Interaction State --
+    const [activeInteraction, setActiveInteraction] = useState<AlgebraInteraction | undefined>(initialInteraction);
+    const [currentEquations, setCurrentEquations] = useState(initialRichEquations);
+
   const [isSolved, setIsSolved] = useState(false);
   const [showSolvedState, setShowSolvedState] = useState(false);
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [inputCorrect, setInputCorrect] = useState(false);
 
+    // Command Input State
+    const [commandInputValue, setCommandInputValue] = useState("");
+    const [commandInputCorrect, setCommandInputCorrect] = useState(false);
+    const [commandInputError, setCommandInputError] = useState(false);
+
   // Currently being dragged item ID
   const [draggedId, setDraggedId] = useState<string | null>(null);
 
   useEffect(() => {
+      setActiveInteraction(initialInteraction);
+      setCurrentEquations(initialRichEquations);
       setIsSolved(false);
       setShowSolvedState(false);
       setSelectedChoice(null);
       setInputValue("");
       setInputCorrect(false);
+      setCommandInputValue("");
+      setCommandInputCorrect(false);
+      setCommandInputError(false);
       setDraggedId(null);
   }, [state]);
 
-  // If solved, trigger the transition to show the solved state after a brief delay
+    // If solved, trigger the transition to show the solved state OR next interaction after a brief delay
   useEffect(() => {
-      if (isSolved && interaction?.solvedEquations) {
+      if (isSolved && activeInteraction?.solvedEquations) {
           const timer = setTimeout(() => {
-              setShowSolvedState(true);
+              if (activeInteraction.nextInteraction) {
+                  // Chained interaction: transition to next
+                  setCurrentEquations(activeInteraction.solvedEquations);
+                  setActiveInteraction(activeInteraction.nextInteraction);
+                  setIsSolved(false);
+                  // Reset input states
+                  setInputValue("");
+                  setInputCorrect(false);
+                  setCommandInputValue("");
+                  setCommandInputCorrect(false);
+                  setCommandInputError(false);
+              } else {
+              // Final interaction: show solved state
+                  setShowSolvedState(true);
+              }
           }, 800); // Wait for the immediate drop feedback before fading to new state
           return () => clearTimeout(timer);
       }
-  }, [isSolved, interaction]);
+  }, [isSolved, activeInteraction]);
 
   // --- Legacy String Renderer ---
   const renderLegacyEquation = (eq: string) => {
@@ -93,7 +120,7 @@ const AlgebraVisual: React.FC<Props> = ({ state }) => {
   // --- Rich Term Renderer ---
   const renderTerm = (term: AlgebraTerm, lineIndex: number, termIndex: number) => {
       // Common base classes for all terms
-      const baseClasses = "mx-0.5 inline-block transition-all duration-700 relative";
+      const baseClasses = "mx-0.5 inline-block transition-all duration-700 relative font-bold";
 
       switch (term.type) {
           case 'text':
@@ -151,7 +178,7 @@ const AlgebraVisual: React.FC<Props> = ({ state }) => {
                         const droppedId = e.dataTransfer.getData('text/plain');
                         if (term.accepts?.includes(droppedId)) {
                              setIsSolved(true);
-                             interaction?.onDragComplete?.();
+                            activeInteraction?.onDragComplete?.();
                         }
                     }}
                     className={`mx-1 px-3 py-1 border-2 border-dashed rounded-lg inline-block transition-all duration-300 
@@ -184,14 +211,14 @@ const AlgebraVisual: React.FC<Props> = ({ state }) => {
       }
   };
 
-  // Decide what to render: the sequence frame, or the solved state
-  const equationsToRender = showSolvedState && interaction?.solvedEquations 
-      ? interaction.solvedEquations 
-      : currentFrame.richEquations;
+    // Decide what to render: the sequence frame, or the solved state OR current activeInteraction state
+    const equationsToRender = showSolvedState && activeInteraction?.solvedEquations
+        ? activeInteraction.solvedEquations
+        : (sequence && sequence.length > 0 ? currentFrame.richEquations : currentEquations);
 
-  const annotationToRender = showSolvedState && interaction?.successAnnotation
-      ? interaction.successAnnotation
-      : currentFrame.annotation;
+    const annotationToRender = showSolvedState && activeInteraction?.successAnnotation
+        ? activeInteraction.successAnnotation
+        : (activeInteraction?.type === 'command-input' ? "" : (currentFrame.annotation || initialAnnotation));
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center bg-stone-50 rounded-3xl shadow-inner p-4 md:p-8 transition-all duration-500 font-serif relative overflow-hidden">
@@ -221,9 +248,9 @@ const AlgebraVisual: React.FC<Props> = ({ state }) => {
       </div>
 
       {/* Interaction Area: Choices */}
-      {interaction?.type === 'choice' && interaction.choices && (
+          {activeInteraction?.type === 'choice' && activeInteraction.choices && (
           <div className="mt-12 flex gap-4 flex-wrap justify-center z-20 animate-in fade-in slide-in-from-bottom-4 duration-1000 fill-mode-forwards">
-              {interaction.choices.map(choice => (
+                  {activeInteraction.choices.map(choice => (
                   <div key={choice.id} className="flex flex-col items-center">
                     <button 
                         onClick={() => setSelectedChoice(choice.id)}
@@ -239,8 +266,62 @@ const AlgebraVisual: React.FC<Props> = ({ state }) => {
           </div>
       )}
 
+          {/* Interaction Area: Command Input */}
+          {activeInteraction?.type === 'command-input' && !showSolvedState && (
+              <div className={`mt-12 flex flex-col items-center z-20 transition-all duration-500 ${isSolved ? 'opacity-0 translate-y-4' : 'animate-in fade-in slide-in-from-bottom-4 duration-1000 fill-mode-forwards'}`}>
+                  {activeInteraction.title && (
+                      <div className="mb-2 text-xl font-bold text-sky-600">{activeInteraction.title}</div>
+                  )}
+                  {activeInteraction.commandPrompt && (
+                      <div className="mb-4 text-lg font-bold text-stone-600">{activeInteraction.commandPrompt}</div>
+                  )}
+                  <div className="flex items-center gap-2">
+                      <input
+                          type="text"
+                          value={commandInputValue}
+                          disabled={isSolved}
+                          onChange={(e) => {
+                              const val = e.target.value;
+                              setCommandInputValue(val);
+                              setCommandInputError(false);
+                          }}
+                          onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                  if (activeInteraction?.correctCommand && commandInputValue.trim().toLowerCase() === activeInteraction.correctCommand.toLowerCase()) {
+                                      setCommandInputCorrect(true);
+                                      setIsSolved(true);
+                                  } else {
+                                      setCommandInputError(true);
+                                  }
+                              }
+                          }}
+                          className={`px-4 py-2 text-xl text-center rounded-lg border-2 outline-none font-bold transition-all w-48
+                          ${commandInputCorrect ? 'border-green-500 bg-green-50 text-green-800' :
+                                  commandInputError ? 'border-red-500 bg-red-50 text-red-800' :
+                                      'border-stone-300 focus:border-sky-500 text-stone-800'}
+                      `}
+                          placeholder="e.g. +5, /2"
+                      />
+                      <button
+                          onClick={() => {
+                              if (activeInteraction?.correctCommand && commandInputValue.trim().toLowerCase() === activeInteraction.correctCommand.toLowerCase()) {
+                                  setCommandInputCorrect(true);
+                                  setIsSolved(true);
+                              } else {
+                                  setCommandInputError(true);
+                              }
+                          }}
+                          disabled={isSolved}
+                          className="px-4 py-2 bg-sky-500 text-white rounded-lg font-bold hover:bg-sky-600 transition-colors disabled:opacity-50"
+                      >
+                          Apply
+                      </button>
+                  </div>
+              </div>
+          )}
+
       {/* Input Success Message */}
-      {interaction?.type === 'fill-input' && inputCorrect && (
+          {activeInteraction?.type === 'fill-input' && inputCorrect && (
           <div className="absolute bottom-12 text-2xl font-bold text-green-600 animate-bounce">Correct!</div>
       )}
 

@@ -220,9 +220,12 @@ const CartesianVisual: React.FC<Props> = ({ state }) => {
             </g>
         )}
 
-        {/* Standard Highlight Points (No Glow) */}
+              {/* Standard Highlight Points */}
         {highlightPoints.map((pt, i) => (
             <g key={`hl-${i}`} className="transition-all duration-500">
+                {pt.animation === 'pulse' && (
+                    <circle cx={mapX(pt.x)} cy={mapY(pt.y!)} r="20" fill={pt.color || "#ef4444"} opacity="0.3" className="animate-pulse" />
+                )}
                <circle cx={mapX(pt.x)} cy={mapY(pt.y!)} r="7" fill={pt.color || "#ef4444"} stroke="white" strokeWidth="2" />
                {pt.label && <text x={mapX(pt.x) + 15} y={mapY(pt.y!) - 15} className="text-xl font-bold fill-stone-800" style={{ textShadow: '0px 0px 4px white' }}>{pt.label}</text>}
             </g>
@@ -231,7 +234,7 @@ const CartesianVisual: React.FC<Props> = ({ state }) => {
         {/* Success Point (Glows!) */}
         {successPoint && (
              <g className="transition-all duration-500">
-                <circle cx={mapX(successPoint.x)} cy={mapY(successPoint.y)} r="30" fill="#10b981" opacity="0.4" className="animate-ping" />
+                      <circle cx={mapX(successPoint.x)} cy={mapY(successPoint.y)} r="30" fill="#10b981" opacity="0.4" className="animate-pulse" />
                 <circle cx={mapX(successPoint.x)} cy={mapY(successPoint.y)} r="10" fill="#10b981" stroke="white" strokeWidth="3" />
             </g>
         )}

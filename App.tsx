@@ -6,7 +6,7 @@ import Quiz from './components/Quiz';
 import { LessonDefinition, CartesianVisualState, WaveformVisualState, AlgebraSequenceFrame, AlgebraVisualState } from './types';
 
 // --- Reusable Inline Slider ---
-const InlineSlider = ({ value, onChange, min, max, step=0.1, label }: any) => (
+const InlineSlider = ({ value, onChange, min, max, step = 0.1, label }: any) => (
   <span className="inline-flex flex-col align-middle mx-2 p-2 bg-stone-200 rounded-lg border border-stone-300 relative -top-1 z-30">
     <label className="text-[10px] uppercase font-bold text-stone-500 sans mb-1">{label}</label>
     <input
@@ -14,6 +14,8 @@ const InlineSlider = ({ value, onChange, min, max, step=0.1, label }: any) => (
       onChange={(e) => onChange(parseFloat(e.target.value))}
       className="w-24 md:w-32 accent-current cursor-pointer"
       onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
     />
   </span>
 );
@@ -32,12 +34,12 @@ const useWaveformLesson = (): LessonDefinition => {
     title: 'Waveforms',
     description: 'Learn the basics of sound physics.',
     quiz: {
-        question: "If a sound is louder, how does its waveform change?",
-        options: [
-          { id: 0, text: "Frequency increases", correct: false, explanation: "Frequency controls pitch." },
-          { id: 1, text: "Amplitude increases", correct: true, explanation: "Amplitude is perceived as loudness." },
-          { id: 2, text: "Wavelength gets longer", correct: false, explanation: "Related to pitch, not loudness." },
-        ]
+      question: "If a sound is louder, how does its waveform change?",
+      options: [
+        { id: 0, text: "Frequency increases", correct: false, explanation: "Frequency controls pitch." },
+        { id: 1, text: "Amplitude increases", correct: true, explanation: "Amplitude is perceived as loudness." },
+        { id: 2, text: "Wavelength gets longer", correct: false, explanation: "Related to pitch, not loudness." },
+      ]
     },
     steps: [
       { id: 'intro', visualState: { ...base, amplitude: 0.5, frequency: 1, isPlaying: true }, content: (<><h1 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight">Let's Learn About <span className="text-sky-600">Waveforms</span>.</h1><p>An interactive guide to the funny shapes of sound.</p><p className="mt-4 text-stone-500 text-sm sans font-bold uppercase tracking-widest">Scroll to begin ↓</p></>) },
@@ -48,31 +50,7 @@ const useWaveformLesson = (): LessonDefinition => {
   };
 };
 
-const useLinearLesson = (): LessonDefinition => {
-  const [m, setM] = useState(1);
-  const [b, setB] = useState(0);
-  const base: Omit<CartesianVisualState, 'plots'> = { type: 'cartesian' };
-  const linearFn = (x: number) => m * x + b;
 
-  return {
-    id: 'linear',
-    title: 'Linear Equations',
-    description: 'Master the classic y = mx + b.',
-    quiz: {
-        question: "In y = 2x + 3, what is the y-intercept?",
-        options: [
-            { id: 0, text: "2", correct: false, explanation: "2 is the slope (m)." },
-            { id: 1, text: "3", correct: true, explanation: "Correct! b is the constant term." },
-            { id: 2, text: "5", correct: false },
-        ]
-    },
-    steps: [
-       { id: 'intro', visualState: { ...base, plots: [], domain: [-1,1], range: [-1,1] }, content: (<><h1 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight">Let's Learn <span className="text-violet-600">Linear Equations</span>.</h1><p>Understanding <code>y = mx + b</code>.</p><p className="mt-4 text-stone-500 text-sm sans font-bold uppercase tracking-widest">Scroll to begin ↓</p></>) },
-       { id: 'intercept', visualState: { ...base, plots: [{ fn: (x) => b, color: '#8b5cf6' }], highlightPoints: [{x: 0, label: `b=${b}`, color: '#10b981'}] }, content: (<><h2 className="text-3xl font-bold mb-4">1. The Y-Intercept (b)</h2><p><strong>b</strong> is where the line crosses the vertical Y-axis.</p><div className="text-emerald-600"><InlineSlider min={-5} max={5} step={1} value={b} onChange={setB} label="Change b" /></div></>) },
-       { id: 'slope', visualState: { ...base, plots: [{ fn: linearFn, color: '#8b5cf6' }], showSlopeAt: {x: 2, plotIndex: 0} }, content: (<><h2 className="text-3xl font-bold mb-4">2. The Slope (m)</h2><p><strong>m</strong> is "rise over run".</p><div className="text-violet-600"><InlineSlider min={-4} max={4} step={0.5} value={m} onChange={setM} label="Change m" /></div></>) },
-    ]
-  };
-};
 
 // --- SYSTEMS LESSON ---
 const useSystemsLesson = (): LessonDefinition => {
@@ -80,121 +58,84 @@ const useSystemsLesson = (): LessonDefinition => {
   const f2 = (x: number) => -1 * x + 4;
 
   const cartesianBase: CartesianVisualState = {
-      type: 'cartesian',
-      plots: [ 
-          { fn: f1, color: '#0ea5e9', label: 'y = 2x + 1', labelX: 2 }, 
-          { fn: f2, color: '#ef4444', label: 'y = -x + 4', labelX: 4.5 } 
-      ],
-      domain: [-2, 6],
-      range: [-2, 6]
+    type: 'cartesian',
+    plots: [
+      { fn: f1, color: '#0ea5e9', label: 'y = 2x + 1', labelX: 2 },
+      { fn: f2, color: '#ef4444', label: 'y = -x + 4', labelX: 4.5 }
+    ],
+    domain: [-2, 6],
+    range: [-2, 6]
   };
 
   // Interactive Substitution Step
   const interactiveSubstitution: AlgebraVisualState = {
-      type: 'algebra',
-      annotation: "Drag one equation into the other!",
-      richEquations: [
-          // Line 1: y (target) = 2x + 1 (draggable blue)
-          [
-              { type: 'drop-target', id: 'target-1', value: 'y', accepts: ['expr-2'] },
-              { type: 'text', value: ' = ' },
-              { type: 'draggable', id: 'expr-1', value: '2x + 1', color: 'bg-sky-500' }
-          ],
-          // Line 2: y (target) = -x + 4 (draggable red)
-          [
-              { type: 'drop-target', id: 'target-2', value: 'y', accepts: ['expr-1'] },
-              { type: 'text', value: ' = ' },
-              { type: 'draggable', id: 'expr-2', value: '-x + 4', color: 'bg-red-500' }
-          ]
+    type: 'algebra',
+    annotation: "Drag one equation into the other!",
+    richEquations: [
+      // Line 1: y (target) = 2x + 1 (draggable blue)
+      [
+        { type: 'drop-target', id: 'target-1', value: 'y', accepts: ['expr-2'] },
+        { type: 'text', value: ' = ' },
+        { type: 'draggable', id: 'expr-1', value: '2x + 1', color: 'bg-sky-500' }
       ],
-      interaction: {
-          type: 'drag-drop',
-          successAnnotation: "Combined!",
+      // Line 2: y (target) = -x + 4 (draggable red)
+      [
+        { type: 'drop-target', id: 'target-2', value: 'y', accepts: ['expr-1'] },
+        { type: 'text', value: ' = ' },
+        { type: 'draggable', id: 'expr-2', value: '-x + 4', color: 'bg-red-500' }
+      ]
+    ],
+    interaction: {
+      type: 'drag-drop',
+      successAnnotation: "Combined!",
+      solvedEquations: [
+        [
+          { type: 'highlight', value: '2x + 1', color: '#bae6fd' },
+          { type: 'text', value: ' = ' },
+          { type: 'highlight', value: '-x + 4', color: '#fecaca' }
+        ]
+      ],
+      nextInteraction: {
+        type: 'command-input',
+        title: 'Solve for x',
+        commandPrompt: 'What should you do on each side of the equation to group the x terms?',
+        correctCommand: '+x',
+        solvedEquations: [
+          [{ type: 'text', value: '3x + 1 = 4' }]
+        ],
+        successAnnotation: "Added x to both sides!",
+        nextInteraction: {
+          type: 'command-input',
+          title: 'Solve for x',
+          commandPrompt: 'Now, how do we isolate 3x?',
+          correctCommand: '-1',
           solvedEquations: [
-              [
-                  { type: 'highlight', value: '2x + 1', color: '#bae6fd' },
-                  { type: 'text', value: ' = ' },
-                  { type: 'highlight', value: '-x + 4', color: '#fecaca' }
-              ]
-          ]
+            [{ type: 'text', value: '3x = 3' }]
+          ],
+          successAnnotation: "Subtracted 1 from both sides!",
+          nextInteraction: {
+            type: 'command-input',
+            title: 'Solve for x',
+            commandPrompt: 'Finally, how do we find x?',
+            correctCommand: '/3',
+            solvedEquations: [
+              [{ type: 'highlight', value: 'x = 1', color: '#bbf7d0', animation: 'pulse' }]
+            ],
+            successAnnotation: "Solved for x!"
+          }
+        }
       }
+    }
   };
 
-  // Step 3: Solve for X (Merged Sequence - Teacher Style Stacking)
-  const seqSolveX: AlgebraSequenceFrame[] = [
-    {
-        duration: 2000,
-        richEquations: [
-            [{type:'text', value:'2x + 1 = -x + 4'}]
-        ]
-    },
-    // Add x
-    {
-        duration: 2500,
-        annotation: "Add 'x' to both sides to group them",
-        richEquations: [
-            [{type:'text', value:'2x + 1 = -x + 4'}],
-            [{type:'text', value:'2x'}, {type:'highlight', value:' + x', color:'#bbf7d0', animation:'fly-in'}, {type:'text', value:' + 1 = -x'}, {type:'highlight', value:' + x', color:'#bbf7d0', animation:'fly-in'}, {type:'text', value:' + 4'}]
-        ]
-    },
-    // Simplify 1
-    {
-        duration: 2000,
-        annotation: "Simplify",
-        richEquations: [
-             [{type:'text', value:'2x + 1 = -x + 4'}],
-             [{type:'text', value:'3x + 1 = 4', animation:'fly-in'}]
-        ]
-    },
-    // Subtract 1
-    {
-        duration: 2500,
-        annotation: "Subtract 1 from both sides",
-        richEquations: [
-             [{type:'text', value:'2x + 1 = -x + 4'}],
-             [{type:'text', value:'3x + 1 = 4'}],
-             [{type:'text', value:'3x + 1'}, {type:'highlight', value:' - 1', color:'#fecaca', animation:'fly-in'}, {type:'text', value:' = 4'}, {type:'highlight', value:' - 1', color:'#fecaca', animation:'fly-in'}]
-        ]
-    },
-    // Simplify 2
-    {
-        duration: 2000,
-        annotation: "Simplify",
-        richEquations: [
-             [{type:'text', value:'2x + 1 = -x + 4'}],
-             [{type:'text', value:'3x + 1 = 4'}],
-             [{type:'text', value:'3x = 3', animation:'fly-in'}]
-        ]
-    },
-    // Divide 3
-    {
-        duration: 2500,
-        annotation: "Divide by 3",
-        richEquations: [
-             [{type:'text', value:'2x + 1 = -x + 4'}],
-             [{type:'text', value:'3x + 1 = 4'}],
-             [{type:'text', value:'3x = 3'}],
-             [{type:'text', value:'3x'}, {type:'highlight', value:' ÷ 3', color:'#ddd6fe', animation:'fly-in'}, {type:'text', value:' = 3'}, {type:'highlight', value:' ÷ 3', color:'#ddd6fe', animation:'fly-in'}]
-        ]
-    },
-    // Final
-    {
-        annotation: "Solved!",
-        richEquations: [
-             [{type:'text', value:'2x + 1 = -x + 4'}],
-             [{type:'text', value:'3x + 1 = 4'}],
-             [{type:'text', value:'3x = 3'}],
-             [{type:'highlight', value:'x = 1', color:'#bbf7d0', animation:'pulse'}]
-        ]
-    }
-  ];
+
 
   // Step 4: Find Y (Merged Sequence)
   const seqFindY: AlgebraSequenceFrame[] = [
-      { duration: 2000, richEquations: [[{type:'highlight', value:'x = 1', color:'#bbf7d0'}], [{type:'text', value:'y = 2'}, {type:'highlight', value:'x', color:'#fecaca'}, {type:'text', value:'+ 1'}]] },
-      { duration: 2000, annotation: "Plug x = 1 into the first equation", richEquations: [[{type:'text', value:'x = 1'}], [{type:'text', value:'y = 2'}, {type:'highlight', value:'(1)', color:'#bbf7d0', animation:'slide-in-top'}, {type:'text', value:'+ 1'}]] },
-      { duration: 2000, richEquations: [[{type:'text', value:'y = 2(1) + 1'}]] },
-      { annotation: "Simplify", richEquations: [[{type:'highlight', value:'y = 3', color:'#bae6fd', animation:'pulse'}]] }
+    { duration: 2000, richEquations: [[{ type: 'highlight', value: 'x = 1', color: '#bbf7d0' }], [{ type: 'text', value: 'y = 2' }, { type: 'highlight', value: 'x', color: '#fecaca' }, { type: 'text', value: '+ 1' }]] },
+    { duration: 2000, annotation: "Plug x = 1 into the first equation", richEquations: [[{ type: 'text', value: 'x = 1' }], [{ type: 'text', value: 'y = 2' }, { type: 'highlight', value: '(1)', color: '#bbf7d0', animation: 'slide-in-top' }, { type: 'text', value: '+ 1' }]] },
+    { duration: 2000, richEquations: [[{ type: 'text', value: 'y = 2(1) + 1' }]] },
+    { annotation: "Simplify", richEquations: [[{ type: 'highlight', value: 'y = 3', color: '#bae6fd', animation: 'pulse' }]] }
   ];
 
   return {
@@ -202,44 +143,57 @@ const useSystemsLesson = (): LessonDefinition => {
     title: 'Solving Systems of Linear Equations',
     description: 'Find where two lines meet, visually and algebraically.',
     quiz: {
-        question: "Your turn! Solve the system: y = x + 5 and y = 3x - 1",
-        options: [
-            { id: 0, text: "(3, 8)", correct: true, explanation: "Correct! x=3, y=8 works for both." },
-            { id: 1, text: "(1, 6)", correct: false, explanation: "Checks out for the first equation, but not the second." },
-            { id: 2, text: "(2, 7)", correct: false, explanation: "Close, but not quite." },
-            { id: 3, text: "(0, 5)", correct: false, explanation: "That's just the y-intercept of the first line." }
-        ]
+      question: "Your turn! Solve the system: y = x + 5 and y = 3x - 1",
+      options: [
+        { id: 0, text: "(3, 8)", correct: true, explanation: "Correct! x=3, y=8 works for both." },
+        { id: 1, text: "(1, 6)", correct: false, explanation: "Checks out for the first equation, but not the second." },
+        { id: 2, text: "(2, 7)", correct: false, explanation: "Close, but not quite." },
+        { id: 3, text: "(0, 5)", correct: false, explanation: "That's just the y-intercept of the first line." }
+      ]
     },
     steps: [
       {
         id: 'step1',
         visualState: {
-            ...cartesianBase,
-            introAnimation: true,
-            showHoverCoordinates: true,
-            interaction: { type: 'pick-point', target: { x: 1, y: 3, tolerance: 0.6 }, successMessage: "Nice!" }
+          ...cartesianBase,
+          introAnimation: true,
+          showHoverCoordinates: true,
+          interaction: { type: 'pick-point', target: { x: 1, y: 3, tolerance: 0.6 }, successMessage: "Nice!" }
         },
-        content: (<><h2 className="text-3xl font-bold mb-4">Step 1: Find the Goal</h2><p>'Solving a system' just means finding the one single point (x, y) where these two lines meet.</p><p className="font-bold mt-4 text-sky-600">Look at the graph. Click on the exact point where you see the blue and red lines cross.</p></>)
+        content: (<><h2 className="text-3xl font-bold mb-4">System of Equations</h2><p>'Solving a system' just means finding the one single point (x, y) where these two lines meet.</p><p className="font-bold mt-4 text-sky-600">Look at the graph. Click on the exact point where you see the blue and red lines cross.</p></>)
       },
       {
         id: 'step2',
         visualState: interactiveSubstitution,
-        content: (<><h2 className="text-3xl font-bold mb-4">Step 2: The 'Substitution' Move</h2><p>You found the answer visually. Now, let's prove it with algebra using 'Substitution'.</p><p><strong>Drag</strong> the colorful part of one equation onto the 'y' of the other equation to combine them.</p></>)
+        content: (<><h2 className="text-3xl font-bold mb-4">The 'Substitution' Move</h2><p>You found the answer visually. Now, let's prove it with algebra using the substitution method. Set both equations equal to each other.</p><p className="font-bold mt-4 text-sky-600">Drag the colorful part of one equation onto the 'y' of the other equation to combine them.</p><p className="text-sky-600 mt-4 font-bold">After combining, follow the prompts to solve for x step-by-step.</p></>)
       },
       {
         id: 'step3',
-        visualState: { type: 'algebra', sequence: seqSolveX },
-        content: (<><h2 className="text-3xl font-bold mb-4">Step 3: Solve for X</h2><p>Now we have one equation and just one variable, 'x'. Let's solve for X.</p><p>Watch as we <strong>add x</strong>, <strong>subtract 1</strong>, and finally <strong>divide by 3</strong> to isolate x.</p></>)
+        visualState: { type: 'algebra', sequence: seqFindY },
+        content: (<><h2 className="text-3xl font-bold mb-4">Find y</h2><p>We have <strong>x = 1</strong>. To find 'y', we can plug this back into either of our original equations.</p><p>Let's use the first one: y = 2x + 1.</p></>)
       },
       {
         id: 'step4',
-        visualState: { type: 'algebra', sequence: seqFindY },
-        content: (<><h2 className="text-3xl font-bold mb-4">Step 4: Find 'y'</h2><p>We have <strong>x = 1</strong>. To find 'y', we can plug this back into either of our original equations.</p><p>Let's use the first one: y = 2x + 1.</p></>)
-      },
-      {
-        id: 'step5',
-        visualState: { ...cartesianBase, highlightPoints: [{ x: 1, y: 3, label: '(1, 3)', color: '#10b981' }] },
-        content: (<><h2 className="text-3xl font-bold mb-4">Step 5: The Final Answer</h2><p>Now we know: <strong>x = 1</strong> and <strong>y = 3</strong>.</p><p>Wasn't that the exact point you clicked on the graph in Step 1? You solved it two different ways!</p></>)
+        visualState: {
+          type: 'sequence',
+          sequence: [
+            {
+              duration: 3000,
+              state: {
+                type: 'algebra',
+                richEquations: [
+                  [{ type: 'text', value: 'x = 1, y = 3' }],
+                  [{ type: 'highlight', value: '(1, 3)', color: '#10b981', animation: 'fly-in' }]
+                ]
+              }
+            },
+            {
+              duration: 0,
+              state: { ...cartesianBase, introAnimation: true, highlightPoints: [{ x: 1, y: 3, label: '(1, 3)', color: '#10b981', animation: 'pulse' }] }
+            }
+          ]
+        },
+        content: (<><h2 className="text-3xl font-bold mb-4">The Final Answer</h2><p>Now we know: <strong>x = 1</strong> and <strong>y = 3</strong>.</p><p>Wasn't that the exact point you clicked on the graph in Step 1? You solved it two different ways!</p></>)
       }
     ]
   };
@@ -251,13 +205,12 @@ const useSystemsLesson = (): LessonDefinition => {
 // =========================================
 
 function App() {
-  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>('systems');
 
   // Initialize all lessons
   const waveforms = useWaveformLesson();
-  const linear = useLinearLesson();
   const systems = useSystemsLesson();
-  const lessons = [waveforms, linear, systems];
+  const lessons = [waveforms, systems];
 
   const activeLesson = lessons.find(l => l.id === selectedLessonId);
 
@@ -275,8 +228,8 @@ function App() {
                 className="group text-left p-8 bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all border-2 border-transparent hover:border-sky-500 flex flex-col justify-between"
               >
                 <div>
-                    <h3 className="text-2xl font-bold mb-2 group-hover:text-sky-600 transition-colors">{lesson.title}</h3>
-                    <p className="text-stone-500 leading-relaxed">{lesson.description}</p>
+                  <h3 className="text-2xl font-bold mb-2 group-hover:text-sky-600 transition-colors">{lesson.title}</h3>
+                  <p className="text-stone-500 leading-relaxed">{lesson.description}</p>
                 </div>
                 <div className="mt-8 text-sm font-bold text-sky-600 opacity-50 group-hover:opacity-100 transition-opacity">OPEN MODULE →</div>
               </button>
@@ -303,11 +256,17 @@ const LessonEngine = ({ lesson, onExit }: { lesson: LessonDefinition, onExit: ()
 
       <div className="sticky top-0 h-[50vh] md:h-screen w-full md:w-1/2 lg:w-3/5 bg-stone-100 z-10 shadow-2xl md:shadow-none md:border-r border-stone-200 overflow-hidden">
         <div className="h-full w-full p-4 md:p-8 lg:p-12 flex items-center justify-center">
-           <div className="w-full max-w-2xl aspect-square relative">
-             <div className="absolute inset-0">
+          {activeStepId === 'quiz' ? (
+            <div className="w-full max-w-xl">
+              <Quiz data={lesson.quiz} />
+            </div>
+          ) : (
+              <div className="w-full max-w-2xl aspect-square relative">
+                <div className="absolute inset-0">
                 <VisualStage state={currentStep.visualState} />
-             </div>
-           </div>
+                </div>
+              </div>
+          )}
         </div>
       </div>
 
@@ -318,10 +277,11 @@ const LessonEngine = ({ lesson, onExit }: { lesson: LessonDefinition, onExit: ()
               {step.content}
             </Step>
           ))}
-           <Step id="quiz" onInView={handleStepEnter}>
-              <h2 className="text-4xl font-bold mb-4">Check your knowledge.</h2>
-              <Quiz data={lesson.quiz} />
-           </Step>
+          <Step id="quiz" onInView={handleStepEnter}>
+            <div className="text-center">
+              <h2 className="text-4xl font-bold mb-4">Let's test what you've learned!</h2>
+            </div>
+          </Step>
         </div>
       </div>
     </main>

@@ -2,7 +2,7 @@
 import { ReactNode } from "react";
 
 // -- Visual States --
-export type VisualType = 'waveform' | 'cartesian' | 'algebra';
+export type VisualType = 'waveform' | 'cartesian' | 'algebra' | 'sequence';
 
 export interface BaseVisualState {
   type: VisualType;
@@ -29,7 +29,7 @@ export interface Plot {
 export interface CartesianVisualState extends BaseVisualState {
   type: 'cartesian';
   plots: Plot[];
-  highlightPoints?: Array<{ x: number; y?: number; label?: string; color?: string }>;
+  highlightPoints?: Array<{ x: number; y?: number; label?: string; color?: string; animation?: 'pulse' }>;
   showSlopeAt?: { x: number, plotIndex: number };
   domain?: [number, number];
   range?: [number, number];
@@ -66,6 +66,23 @@ export interface AlgebraSequenceFrame {
     duration?: number; // ms to hold this frame before next
 }
 
+export interface AlgebraInteraction {
+  type: 'drag-drop' | 'choice' | 'fill-input' | 'command-input';
+  title?: string;
+  choices?: AlgebraChoice[];
+  // For drag-drop, what to show after success
+  solvedEquations?: EquationLine[];
+  successAnnotation?: string;
+  onDragComplete?: () => void;
+
+  // For command-input
+  correctCommand?: string;
+  commandPrompt?: string;
+
+  // Chaining
+  nextInteraction?: AlgebraInteraction;
+}
+
 export interface AlgebraVisualState extends BaseVisualState {
     type: 'algebra';
     // Single state mode
@@ -80,17 +97,20 @@ export interface AlgebraVisualState extends BaseVisualState {
     highlightTerm?: string; 
     
     // Interactive modes
-    interaction?: {
-        type: 'drag-drop' | 'choice' | 'fill-input';
-        choices?: AlgebraChoice[];
-        // For drag-drop, what to show after success
-        solvedEquations?: EquationLine[];
-        successAnnotation?: string;
-        onDragComplete?: () => void;
-    }
+  interaction?: AlgebraInteraction;
 }
 
-export type AnyVisualState = WaveformVisualState | CartesianVisualState | AlgebraVisualState;
+export type AnySingleVisualState = WaveformVisualState | CartesianVisualState | AlgebraVisualState;
+
+export interface SequenceVisualState extends BaseVisualState {
+  type: 'sequence';
+  sequence: Array<{
+    duration: number;
+    state: AnySingleVisualState;
+  }>;
+}
+
+export type AnyVisualState = AnySingleVisualState | SequenceVisualState;
 
 // -- Lesson Structure --
 
