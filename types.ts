@@ -2,7 +2,7 @@
 import { ReactNode } from "react";
 
 // -- Visual States --
-export type VisualType = 'waveform' | 'cartesian' | 'algebra' | 'sequence';
+export type VisualType = 'waveform' | 'cartesian' | 'algebra' | 'sequence' | 'sat';
 
 export interface BaseVisualState {
   type: VisualType;
@@ -100,7 +100,40 @@ export interface AlgebraVisualState extends BaseVisualState {
   interaction?: AlgebraInteraction;
 }
 
-export type AnySingleVisualState = WaveformVisualState | CartesianVisualState | AlgebraVisualState;
+// -- SAT Strategy Types --
+export interface SATChoice {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+  feedback?: string;
+}
+
+export type SATVisualState = BaseVisualState & {
+  type: 'sat';
+  text?: string;
+  highlightedWord?: string;
+  highlightFirstOnly?: boolean; // Only highlight the first occurrence of highlightedWord
+  obscuredWord?: string;
+  showInput?: boolean;
+  showInputAsStatic?: boolean; // Show input value as static text instead of editable input
+  inputPlaceholder?: string;
+  choices?: SATChoice[];
+  showConfetti?: boolean;
+  choicesState?: 'initial' | 'revealed' | 'feedback' | 'fading-out';
+
+  // New animation states
+  cyclingWords?: string[]; // For the "nature" -> "essence" -> etc. animation
+  cyclingTarget?: string;   // The word in 'text' to replace with cycling words
+  flashingWord?: string;    // Word to flash in/out before obscuring
+  warningChoice?: string;   // ID of choice to show "Too obvious!" warning on
+  layout?: 'standard' | 'stacked'; // 'stacked' for when passage is above choices
+  revealChoicesOnInput?: boolean; // Reveal choices when user types in input
+  inputAnnotation?: string; // Helper text to show near the input field
+  inputInstruction?: string; // Instruction text to show above the input
+  fadeSecondLine?: boolean; // Fade out the second line of text
+};
+
+export type AnySingleVisualState = WaveformVisualState | CartesianVisualState | AlgebraVisualState | SATVisualState;
 
 export interface SequenceVisualState extends BaseVisualState {
   type: 'sequence';

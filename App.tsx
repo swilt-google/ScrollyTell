@@ -1,9 +1,8 @@
-
 import React, { useState, useCallback } from 'react';
 import Step from './components/Step';
 import VisualStage from './components/VisualStage';
 import Quiz from './components/Quiz';
-import { LessonDefinition, CartesianVisualState, WaveformVisualState, AlgebraSequenceFrame, AlgebraVisualState } from './types';
+import { LessonDefinition, CartesianVisualState, WaveformVisualState, AlgebraSequenceFrame, AlgebraVisualState, SATVisualState } from './types';
 
 // --- Reusable Inline Slider ---
 const InlineSlider = ({ value, onChange, min, max, step = 0.1, label }: any) => (
@@ -132,10 +131,29 @@ const useSystemsLesson = (): LessonDefinition => {
 
   // Step 4: Find Y (Merged Sequence)
   const seqFindY: AlgebraSequenceFrame[] = [
-    { duration: 2000, richEquations: [[{ type: 'highlight', value: 'x = 1', color: '#bbf7d0' }], [{ type: 'text', value: 'y = 2' }, { type: 'highlight', value: 'x', color: '#fecaca' }, { type: 'text', value: '+ 1' }]] },
-    { duration: 2000, annotation: "Plug x = 1 into the first equation", richEquations: [[{ type: 'text', value: 'x = 1' }], [{ type: 'text', value: 'y = 2' }, { type: 'highlight', value: '(1)', color: '#bbf7d0', animation: 'slide-in-top' }, { type: 'text', value: '+ 1' }]] },
-    { duration: 2000, richEquations: [[{ type: 'text', value: 'y = 2(1) + 1' }]] },
-    { annotation: "Simplify", richEquations: [[{ type: 'highlight', value: 'y = 3', color: '#bae6fd', animation: 'pulse' }]] }
+    {
+      duration: 2000,
+      richEquations: [
+        [{ type: 'highlight', value: 'x = 1', color: '#bae6fd' }],
+        [{ type: 'text', value: 'y = 2' }, { type: 'highlight', value: 'x', color: '#bae6fd' }, { type: 'text', value: ' + 1' }]
+      ]
+    },
+    {
+      duration: 2000,
+      annotation: "Plug x = 1 into the first equation",
+      richEquations: [
+        [{ type: 'text', value: 'x = 1' }],
+        [{ type: 'text', value: 'y = 2(' }, { type: 'highlight', value: '1', color: '#bae6fd', animation: 'slide-in-top' }, { type: 'text', value: ') + 1' }]
+      ]
+    },
+    {
+
+      richEquations: [
+        [{ type: 'text', value: 'x = 1' }],
+        [{ type: 'text', value: 'y = 2(1) + 1' }],
+        [{ type: 'highlight', value: 'y = 3', color: '#bbf7d0', animation: 'pulse' }]
+      ]
+    }
   ];
 
   return {
@@ -153,6 +171,11 @@ const useSystemsLesson = (): LessonDefinition => {
     },
     steps: [
       {
+        id: 'intro',
+        visualState: { ...cartesianBase, introAnimation: true },
+        content: (<><h1 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight">Let's Learn About <span className="text-sky-600">Systems of Equations</span>.</h1><p>Find out what happens when two lines meet.</p><p className="mt-4 text-stone-500 text-sm sans font-bold uppercase tracking-widest">Scroll to begin ↓</p></>)
+      },
+      {
         id: 'step1',
         visualState: {
           ...cartesianBase,
@@ -160,17 +183,17 @@ const useSystemsLesson = (): LessonDefinition => {
           showHoverCoordinates: true,
           interaction: { type: 'pick-point', target: { x: 1, y: 3, tolerance: 0.6 }, successMessage: "Nice!" }
         },
-        content: (<><h2 className="text-3xl font-bold mb-4">System of Equations</h2><p>'Solving a system' just means finding the one single point (x, y) where these two lines meet.</p><p className="font-bold mt-4 text-sky-600">Look at the graph. Click on the exact point where you see the blue and red lines cross.</p></>)
+        content: (<><h2 className="text-3xl font-bold mb-4">System of Equations</h2><p>Solving a <strong>system of equations</strong> just means finding the one single point (x, y) where two lines meet.</p><p className="font-bold mt-4 text-sky-600">Look at the graph. Click on the exact point where you see the blue and red lines cross.</p></>)
       },
       {
         id: 'step2',
         visualState: interactiveSubstitution,
-        content: (<><h2 className="text-3xl font-bold mb-4">The 'Substitution' Move</h2><p>You found the answer visually. Now, let's prove it with algebra using the substitution method. Set both equations equal to each other.</p><p className="font-bold mt-4 text-sky-600">Drag the colorful part of one equation onto the 'y' of the other equation to combine them.</p><p className="text-sky-600 mt-4 font-bold">After combining, follow the prompts to solve for x step-by-step.</p></>)
+        content: (<><h2 className="text-3xl font-bold mb-4">The 'Substitution' Move</h2><p>You found the answer visually. Now, let's solve it using algebra with a method called "substitution." Since both equations are equal to 'y', we can start by setting them equal to each other and solving for x.</p><p className="font-bold mt-4 text-sky-600">Drag the colorful part of one equation onto the 'y' of the other equation to combine them. <p>After combining, follow the prompts to solve for x.</p></p></>)
       },
       {
         id: 'step3',
         visualState: { type: 'algebra', sequence: seqFindY },
-        content: (<><h2 className="text-3xl font-bold mb-4">Find y</h2><p>We have <strong>x = 1</strong>. To find 'y', we can plug this back into either of our original equations.</p><p>Let's use the first one: y = 2x + 1.</p></>)
+        content: (<><h2 className="text-3xl font-bold mb-4">Find y</h2><p> We can use <strong>x = 1</strong> to find 'y', by plugging '1' into either of our original equations for x.<p>Let's use the first one: y = 2x + 1.</p></p></>)
       },
       {
         id: 'step4',
@@ -183,7 +206,7 @@ const useSystemsLesson = (): LessonDefinition => {
                 type: 'algebra',
                 richEquations: [
                   [{ type: 'text', value: 'x = 1, y = 3' }],
-                  [{ type: 'highlight', value: '(1, 3)', color: '#10b981', animation: 'fly-in' }]
+                  [{ type: 'highlight', value: '(1, 3)', color: '#bbf7d0', animation: 'fly-in' }]
                 ]
               }
             },
@@ -200,17 +223,177 @@ const useSystemsLesson = (): LessonDefinition => {
 };
 
 
+// --- SAT STRATEGY LESSON ---
+const useSATLesson = (): LessonDefinition => {
+  const base: SATVisualState = { type: 'sat' };
+
+  const formChoices = [
+    { id: 'a', text: 'A) shape', isCorrect: false },
+    { id: 'b', text: 'B) type', isCorrect: false },
+    { id: 'c', text: 'C) develop', isCorrect: true },
+    { id: 'd', text: 'D) etiquette', isCorrect: false }
+  ];
+
+  return {
+    id: 'sat-strategy',
+    title: 'SAT Strategy: Words in Context',
+    description: 'Master the "Words in Context" questions with a step-by-step guide.',
+    quiz: {
+      question: "What is the most important first step for 'Words in Context' questions?",
+      options: [
+        { id: 0, text: "Read all the answer choices immediately.", correct: false, explanation: "This is a trap! You might get biased by the common definitions." },
+        { id: 1, text: "Predict your own word for the blank.", correct: true, explanation: "Yes! This helps you avoid traps and find the best fit for the specific context." },
+        { id: 2, text: "Choose the most sophisticated-sounding word.", correct: false, explanation: "SAT doesn't just test big words; it tests precise meaning in context." }
+      ]
+    },
+    steps: [
+      {
+        id: 'intro',
+        visualState: {
+          ...base,
+          text: "The nature of the debate.",
+          cyclingTarget: 'nature',
+          cyclingWords: ['character', 'quality', 'essence', 'core', 'spirit', 'substance', 'gist', 'nature']
+        },
+        content: (<><h1 className="text-5xl md:text-7xl font-bold mb-8 tracking-tight">SAT Strategy: <span className="text-sky-600">Words in Context</span></h1><p>Here is a step-by-step guide to tackling "Words in Context" questions on the SAT, complete with visual cues and interactive elements.</p></>)
+      },
+      {
+        id: 'sat-trap',
+        visualState: {
+          ...base,
+          text: "The students hoped to form a new robotics club.\nAs used in the sentence, form most nearly means...",
+          highlightedWord: 'form',
+          highlightFirstOnly: true,
+          choices: formChoices,
+          choicesState: 'revealed',
+          warningChoice: 'a'
+        },
+        content: (<><h2 className="text-3xl font-bold mb-4">The SAT Trap</h2><p>In 'Words in Context' questions, the SAT loves to trap you. The question will ask for the meaning of a common word, and one of the answer choices will be that word's most common definition. This is almost always wrong.</p></>)
+      },
+      {
+        id: 'cover-up-strategy',
+        visualState: {
+          type: 'sequence',
+          sequence: [
+            {
+              duration: 1500,
+              state: {
+                ...base,
+                text: "The students hoped to form a new robotics club.\nAs used in the sentence, form most nearly means...",
+                highlightedWord: 'form',
+                highlightFirstOnly: true,
+                choices: formChoices,
+                choicesState: 'revealed'
+              }
+            },
+            {
+              duration: 1500,
+              state: {
+                ...base,
+                text: "The students hoped to form a new robotics club.\nAs used in the sentence, form most nearly means...",
+                flashingWord: 'form',
+                choices: formChoices,
+                choicesState: 'fading-out',
+                fadeSecondLine: true
+              }
+            },
+            {
+              duration: 0,
+              state: {
+                ...base,
+                text: "The students hoped to form a new robotics club.\nAs used in the sentence, form most nearly means...",
+                inputPlaceholder: 'form',
+                showInput: true,
+                inputInstruction: "Type your own word here",
+                fadeSecondLine: true
+              }
+            }
+          ]
+        },
+        content: (<><h2 className="text-3xl font-bold mb-4">The 'Cover Up' Strategy</h2><p>Here's the strategy: Go back to the sentence in the passage and mentally cover up the word and treat it like a fill-in-the-blank. Before you even look at the choices, predict your own word that makes sense in the blank.</p></>)
+      },
+      {
+        id: 'match-prediction',
+        visualState: {
+          ...base,
+          text: "The students hoped to form a new robotics club.\nAs used in the sentence, form most nearly means...",
+          inputPlaceholder: 'form',
+          showInput: true,
+          showInputAsStatic: true,
+          layout: 'stacked',
+          choices: [
+            { id: 'a', text: 'A) shape', isCorrect: false, feedback: "Common definition, but doesn't fit context." },
+            { id: 'b', text: 'B) type', isCorrect: false },
+            { id: 'c', text: 'C) develop', isCorrect: true, feedback: "YES! Matches prediction." },
+            { id: 'd', text: 'D) etiquette', isCorrect: false }
+          ],
+          choicesState: 'revealed'
+        },
+        content: (<><h2 className="text-3xl font-bold mb-4">Match Your Prediction</h2><p>Now, look at the answer choices and find the one that best matches your prediction. The common definition, 'shape,' makes no sense here.</p></>)
+      },
+      {
+        id: 'your-turn',
+        visualState: {
+          type: 'sequence',
+          sequence: [
+            {
+              duration: 1500,
+              state: {
+                ...base,
+                text: "The scientist was able to observe the reaction through the microscope.\n\nAs used in the sentence, observe most nearly means...",
+                highlightedWord: 'observe',
+                highlightFirstOnly: true,
+                layout: 'stacked'
+              }
+            },
+            {
+              duration: 2000,
+              state: {
+                ...base,
+                text: "The scientist was able to observe the reaction through the microscope.\n\nAs used in the sentence, observe most nearly means...",
+                flashingWord: 'observe',
+                layout: 'stacked'
+              }
+            },
+            {
+              duration: 0,
+              state: {
+                ...base,
+                text: "The scientist was able to observe the reaction through the microscope.\n\nAs used in the sentence, observe most nearly means...",
+                inputPlaceholder: 'observe',
+                showInput: true,
+                layout: 'stacked',
+                revealChoicesOnInput: true,
+                choices: [
+                  { id: 'a', text: 'A) follow', isCorrect: false },
+                  { id: 'b', text: 'B) watch', isCorrect: true, feedback: "YES! Perfect match." },
+                  { id: 'c', text: 'C) comment', isCorrect: false },
+                  { id: 'd', text: 'D) obey', isCorrect: false }
+                ]
+              }
+            }
+          ]
+        },
+        content: (<><h2 className="text-3xl font-bold mb-4">Now Try It Yourself</h2><p>Use the same strategy! Cover up the word, predict what makes sense, then find the match.</p></>)
+      }
+    ]
+  };
+};
+
+
+
 // =========================================
 // MAIN APP COMPONENT
 // =========================================
 
 function App() {
-  const [selectedLessonId, setSelectedLessonId] = useState<string | null>('systems');
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
 
   // Initialize all lessons
   const waveforms = useWaveformLesson();
   const systems = useSystemsLesson();
-  const lessons = [waveforms, systems];
+  const satLesson = useSATLesson();
+  const lessons = [systems, satLesson]; // Hiding waveforms for now
 
   const activeLesson = lessons.find(l => l.id === selectedLessonId);
 
@@ -218,8 +401,8 @@ function App() {
     return (
       <div className="min-h-screen bg-stone-100 flex flex-col items-center justify-center p-6">
         <div className="max-w-4xl w-full">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight text-stone-800">Interactive Explainer Engine</h1>
-          <p className="text-xl text-stone-600 mb-12">Select a concept module.</p>
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight text-stone-800">ScrollyTell</h1>
+          <p className="text-xl text-stone-600 mb-12">Learn through interactive scrolling lessons.</p>
           <div className="grid gap-6 md:grid-cols-3">
             {lessons.map(lesson => (
               <button
@@ -277,11 +460,6 @@ const LessonEngine = ({ lesson, onExit }: { lesson: LessonDefinition, onExit: ()
               {step.content}
             </Step>
           ))}
-          <Step id="quiz" onInView={handleStepEnter}>
-            <div className="text-center">
-              <h2 className="text-4xl font-bold mb-4">Let's test what you've learned!</h2>
-            </div>
-          </Step>
         </div>
       </div>
     </main>

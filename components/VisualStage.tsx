@@ -4,6 +4,7 @@ import { AnyVisualState, AnySingleVisualState } from '../types';
 import WaveformVisual from './WaveformVisual';
 import CartesianVisual from './CartesianVisual';
 import AlgebraVisual from './AlgebraVisual';
+import SATVisual from './SATVisual';
 
 interface Props {
   state: AnyVisualState;
@@ -20,6 +21,7 @@ const VisualStage: React.FC<Props> = ({ state }) => {
 
   const [currentState, setCurrentState] = useState<AnySingleVisualState | null>(() => getInitialState(state));
   const [sequenceIndex, setSequenceIndex] = useState(0);
+  const [persistedInputValues, setPersistedInputValues] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     if (state.type === 'sequence') {
@@ -49,6 +51,23 @@ const VisualStage: React.FC<Props> = ({ state }) => {
 
   if (!currentState) return null;
 
+  // For SAT visuals, get/set input value based on the placeholder
+  const getInputValue = () => {
+    if (currentState.type === 'sat' && currentState.inputPlaceholder) {
+      return persistedInputValues[currentState.inputPlaceholder] || '';
+    }
+    return '';
+  };
+
+  const setInputValue = (value: string) => {
+    if (currentState.type === 'sat' && currentState.inputPlaceholder) {
+      setPersistedInputValues(prev => ({
+        ...prev,
+        [currentState.inputPlaceholder!]: value
+      }));
+    }
+  };
+
   switch (currentState.type) {
     case 'waveform':
       return <WaveformVisual state={currentState} />;
@@ -56,6 +75,8 @@ const VisualStage: React.FC<Props> = ({ state }) => {
       return <CartesianVisual state={currentState} />;
     case 'algebra':
       return <AlgebraVisual state={currentState} />;
+    case 'sat':
+      return <SATVisual state={currentState} inputValue={getInputValue()} onInputChange={setInputValue} />;
     default:
       return null;
   }
