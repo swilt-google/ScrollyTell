@@ -5,6 +5,7 @@ import WaveformVisual from './WaveformVisual';
 import CartesianVisual from './CartesianVisual';
 import AlgebraVisual from './AlgebraVisual';
 import SATVisual from './SATVisual';
+import ManimVideo from './ManimVideo';
 
 interface Props {
   state: AnyVisualState;
@@ -77,6 +78,8 @@ const VisualStage: React.FC<Props> = ({ state }) => {
       return <AlgebraVisual state={currentState} />;
     case 'sat':
       return <SATVisual state={currentState} inputValue={getInputValue()} onInputChange={setInputValue} />;
+    case 'manim-video':
+      return <ManimVideo state={currentState} />;
     default:
       return null;
   }

@@ -2,7 +2,7 @@
 import { ReactNode } from "react";
 
 // -- Visual States --
-export type VisualType = 'waveform' | 'cartesian' | 'algebra' | 'sequence' | 'sat';
+export type VisualType = 'waveform' | 'cartesian' | 'algebra' | 'sequence' | 'sat' | 'manim-video';
 
 export interface BaseVisualState {
   type: VisualType;
@@ -133,7 +133,13 @@ export type SATVisualState = BaseVisualState & {
   fadeSecondLine?: boolean; // Fade out the second line of text
 };
 
-export type AnySingleVisualState = WaveformVisualState | CartesianVisualState | AlgebraVisualState | SATVisualState;
+export interface ManimVideoState extends BaseVisualState {
+  type: 'manim-video';
+  animationId: string; // ID to fetch from backend
+  annotation?: string;
+}
+
+export type AnySingleVisualState = WaveformVisualState | CartesianVisualState | AlgebraVisualState | SATVisualState | ManimVideoState;
 
 export interface SequenceVisualState extends BaseVisualState {
   type: 'sequence';

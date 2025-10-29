@@ -217,6 +217,22 @@ const useSystemsLesson = (): LessonDefinition => {
           ]
         },
         content: (<><h2 className="text-3xl font-bold mb-4">The Final Answer</h2><p>Now we know: <strong>x = 1</strong> and <strong>y = 3</strong>.</p><p>Wasn't that the exact point you clicked on the graph in Step 1? You solved it two different ways!</p></>)
+      },
+      {
+        id: 'step5',
+        visualState: {
+          type: 'sat',
+          text: "Solve this system of equations:\n\ny = x + 2\ny = -x + 6\n\nWhat is the solution (x, y)?",
+          layout: 'stacked',
+          choices: [
+            { id: 'a', text: 'A) (0, 6)', isCorrect: false, feedback: "That's the y-intercept of one equation, not where they meet." },
+            { id: 'b', text: 'B) (4, 2)', isCorrect: false, feedback: "Close! You swapped x and y. Try again!" },
+            { id: 'c', text: 'C) (2, 4)', isCorrect: true, feedback: "YES! Perfect! Set x + 2 = -x + 6 → 2x = 4 → x = 2, then y = 4." },
+            { id: 'd', text: 'D) (6, 0)', isCorrect: false, feedback: "Not quite! Try using substitution." }
+          ],
+          choicesState: 'revealed'
+        },
+        content: (<><h2 className="text-3xl font-bold mb-4">Now Try It Yourself</h2><p>Use the substitution method you just learned! Set the two equations equal and solve for x, then find y.</p></>)
       }
     ]
   };
@@ -403,7 +419,7 @@ function App() {
         <div className="max-w-4xl w-full">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight text-stone-800">ScrollyTell</h1>
           <p className="text-xl text-stone-600 mb-12">Learn through interactive scrolling lessons.</p>
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2">
             {lessons.map(lesson => (
               <button
                 key={lesson.id}

@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { AlgebraVisualState, AlgebraTerm, AlgebraSequenceFrame, AlgebraInteraction } from '../types';
+import confetti from 'canvas-confetti';
 
 interface Props {
   state: AlgebraVisualState;
